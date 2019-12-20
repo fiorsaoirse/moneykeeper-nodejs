@@ -6,7 +6,8 @@ import { postgresDB } from '../databases/postgres-db';
 const port = config.port || 3000;
 
 const start = async () => {
-    // Initialize the database
+    console.log(`Start initializing DB`);
+
     await postgresDB();
 
     app.listen(port, () => {

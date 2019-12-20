@@ -1,17 +1,13 @@
-import { Column, PrimaryGeneratedColumn } from 'typeorm';
+import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { IModel } from '../interfaces/iModel';
 
-export class Model implements IModel {
-    // tell Postgre to generate a Unique Key for this column
+@Entity()
+export class Model extends BaseEntity implements IModel {
+    // column "id", generated
     @PrimaryGeneratedColumn('uuid')
-    public id: number;
+    public id!: number;
 
-    // column "created", type - number
-    @Column('integer')
-    public created: number;
-
-    public constructor(id: number, created: number) {
-        this.id = id;
-        this.created = created;
-    }
+    // column "created", type - timestamp
+    @Column('timestamp')
+    public created!: Date;
 }

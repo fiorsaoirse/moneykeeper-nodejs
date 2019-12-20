@@ -1,5 +1,5 @@
 /*
-This file initializes PostgreSQL database.
+This file initializes PostgreSQL database for tests.
 */
 
 import { Connection, createConnection } from 'typeorm';
@@ -12,7 +12,7 @@ export const postgresDB = async () => {
         port: 5432,
         username: 'moneykeeper',
         password: 'moneykeeper',
-        database: 'moneykeeper',
+        database: 'moneykeeper_test',
         schema: 'moneykeeper',
         ssl: true,
         logging: ['query', 'error'],

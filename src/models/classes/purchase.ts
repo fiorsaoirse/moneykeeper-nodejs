@@ -12,10 +12,10 @@ export class Purchase extends Model implements IPurchase {
     // column "name", type is text, should be not null
     @Column('text')
     @IsNotEmpty()
-    public name: string;
+    public name!: string;
 
-    public constructor(id: number, created: number, name: string) {
-        super(id, created);
-        this.name = name;
-    }
+    // column "const", type is number, should be not null
+    @Column('integer')
+    @IsNotEmpty()
+    public cost!: number;
 }

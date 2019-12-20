@@ -4,20 +4,16 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const koa_1 = __importDefault(require("koa"));
-const routes_1 = __importDefault(require("./routes/routes"));
+const purchases_1 = __importDefault(require("./routes/purchases"));
 const koa_logger_1 = __importDefault(require("koa-logger"));
-// import { Pool } from 'pg';
+const koa_bodyparser_1 = __importDefault(require("koa-bodyparser"));
+const errors_1 = __importDefault(require("./middlewares/errors"));
 const app = new koa_1.default();
 const logger = koa_logger_1.default();
-// const pool: Pool = new Pool({
-//     user: 'moneykeeper',
-//     host: 'localhost',
-//     database: 'moneykeeper',
-//     password: 'Furseal22!',
-//     port: 5432,
-// });
 app.use(logger);
-app.use(routes_1.default.routes());
-// app.pool = pool;
+app.use(koa_bodyparser_1.default());
+app.use(errors_1.default);
+app.use(purchases_1.default.routes());
+app.use(purchases_1.default.allowedMethods());
 exports.default = app;
 //# sourceMappingURL=app.js.map
