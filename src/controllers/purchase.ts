@@ -12,6 +12,7 @@ export default class PurchaseController {
         const purchase = new Purchase();
         purchase.name = body.name;
         purchase.cost = body.cost;
+        purchase.category = body.category;
         purchase.created = new Date();
         // validation
         const errors: ValidationError[] = await validate(purchase, { skipMissingProperties: true });
@@ -43,6 +44,7 @@ export default class PurchaseController {
         updatedPurchase.id = id;
         updatedPurchase.name = body.name;
         updatedPurchase.cost = body.cost;
+        updatedPurchase.category = body.category;
 
         // validation
         const errors: ValidationError[] = await validate(purchase, { skipMissingProperties: true });

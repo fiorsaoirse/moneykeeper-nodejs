@@ -2,8 +2,9 @@ import request from 'supertest';
 import app from '../dist/app';
 import config from '../dist/environment/config-test';
 import { postgresDB } from '../dist/databases/postgres-db-test';
-import { getConnection, getManager } from 'typeorm';
+import { getManager } from 'typeorm';
 import { Purchase } from '../dist/models/classes/purchase';
+import { Category } from '../dist/models/classes/category';
 
 const port = config.port || 4000;
 
@@ -20,9 +21,8 @@ describe('Testing of purchase REST requests', () => {
 
     afterEach(async () => {
         // Clear table after each test run
-        const connection = getConnection();
         const repository = getManager().getRepository(Purchase);
-        await repository.clear();
+        await repository.delete({});
     });
 
     afterAll(async () => {
@@ -57,6 +57,42 @@ describe('Testing of purchase REST requests', () => {
         expect(response.type).toEqual('application/json');
         expect(response.body.name).toEqual('My new purchase');
         expect(response.body.cost).toEqual(12000);
+    });
+
+    test('CREATE purchase with category works', async () => {
+        const categoryBody = {
+            name: 'home',
+            description: 'purchases for home',
+        };
+
+        const catResponse = await request(server)
+            .post('/categories')
+            .set('Accept', 'application\/json/')
+            .send(categoryBody);
+
+        const { body: category } = catResponse;
+        const { id } = catResponse.body;
+
+        expect(catResponse.status).toEqual(200);
+        expect(catResponse.type).toEqual('application/json');
+        expect(catResponse.body.name).toEqual('home');
+
+        const body = {
+            name: 'My new purchase',
+            cost: 12000,
+            category,
+        };
+
+        const response = await request(server)
+            .post('/purchases')
+            .set('Accept', 'application\/json/')
+            .send(body);
+
+        expect(response.status).toEqual(200);
+        expect(response.type).toEqual('application/json');
+        expect(response.body.name).toEqual('My new purchase');
+        expect(response.body.cost).toEqual(12000);
+        expect(response.body.category.id).toEqual(id);
     });
 
     test('READ purchase works', async () => {

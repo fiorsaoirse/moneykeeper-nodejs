@@ -2,7 +2,7 @@ import request from 'supertest';
 import app from '../dist/app';
 import config from '../dist/environment/config-test';
 import { postgresDB } from '../dist/databases/postgres-db-test';
-import { getConnection, getManager } from 'typeorm';
+import { getManager } from 'typeorm';
 import { Category } from '../dist/models/classes/category';
 
 const port = config.port || 4000;
@@ -20,9 +20,8 @@ describe('Testing of category REST requests', () => {
 
     afterEach(async () => {
         // Clear table after each test run
-        const connection = getConnection();
         const repository = getManager().getRepository(Category);
-        await repository.clear();
+        await repository.delete({});
     });
 
     afterAll(async () => {
