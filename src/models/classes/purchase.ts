@@ -14,7 +14,7 @@ export class Purchase extends Model implements IPurchase {
     @IsNotEmpty()
     public name!: string;
 
-    // column "const", type is number, should be not null
+    // column "cost", type is number, should be not null
     @Column('integer')
     @IsNotEmpty()
     public cost!: number;

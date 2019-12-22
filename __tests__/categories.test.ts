@@ -3,11 +3,11 @@ import app from '../dist/app';
 import config from '../dist/environment/config-test';
 import { postgresDB } from '../dist/databases/postgres-db-test';
 import { getConnection, getManager } from 'typeorm';
-import { Purchase } from '../dist/models/classes/purchase';
+import { Category } from '../dist/models/classes/category';
 
 const port = config.port || 4000;
 
-describe('Testing of purchase REST requests', () => {
+describe('Testing of category REST requests', () => {
     let server;
 
     beforeAll(async () => {
@@ -21,7 +21,7 @@ describe('Testing of purchase REST requests', () => {
     afterEach(async () => {
         // Clear table after each test run
         const connection = getConnection();
-        const repository = getManager().getRepository(Purchase);
+        const repository = getManager().getRepository(Category);
         await repository.clear();
     });
 
@@ -30,43 +30,42 @@ describe('Testing of purchase REST requests', () => {
         await server.close();
     });
 
-    test('CREATE purchase works', async () => {
-        const wrongBody = {
-            name: 'this purchase has only name',
-        };
+    test('CREATE category works', async () => {
+        const emptyBody = {};
 
         const errResponse = await request(server)
-            .post('/purchases')
+            .post('/categories')
             .set('Accept', 'application\/json/')
-            .send(wrongBody);
+            .send(emptyBody);
 
         expect(errResponse.status).toEqual(500);
         expect(errResponse.type).toEqual('application/json');
-        expect(errResponse.body.message).toEqual('QueryFailedError: нулевое значение в столбце "cost" нарушает ограничение NOT NULL');
+        expect(errResponse.body.message).toEqual('QueryFailedError: нулевое значение в столбце "name" нарушает ограничение NOT NULL');
 
         const body = {
-            name: 'My new purchase',
-            cost: 12000,
+            name: 'fun',
+            description: 'some fun staff',
+            limit: 2000,
         };
         const response = await request(server)
-            .post('/purchases')
+            .post('/categories')
             .set('Accept', 'application\/json/')
             .send(body);
 
         expect(response.status).toEqual(200);
         expect(response.type).toEqual('application/json');
-        expect(response.body.name).toEqual('My new purchase');
-        expect(response.body.cost).toEqual(12000);
+        expect(response.body.name).toEqual('fun');
+        expect(response.body.description).toEqual('some fun staff');
+        expect(response.body.limit).toEqual(2000);
     });
 
-    test('READ purchase works', async () => {
-        // First create purchase
+    test('READ category works', async () => {
         const body = {
-            name: 'other new purchase',
-            cost: 1000,
+            name: 'food',
+            description: 'some tasty food'
         };
         const createResponse = await request(server)
-            .post('/purchases')
+            .post('/categories')
             .set('Accept', 'application\/json/')
             .send(body);
 
@@ -74,9 +73,8 @@ describe('Testing of purchase REST requests', () => {
 
         const { id } = createResponse.body;
 
-        // Then get it
         const getResponse = await request(server)
-            .get(`/purchases/${id}`)
+            .get(`/categories/${id}`)
             .set('Accept', 'application\/json/');
 
         const { body: respBody } = getResponse;
@@ -84,108 +82,111 @@ describe('Testing of purchase REST requests', () => {
         expect(getResponse.status).toEqual(200);
         expect(getResponse.type).toEqual('application/json');
         expect(respBody.id).toEqual(id);
-        expect(respBody.name).toEqual('other new purchase');
-        expect(respBody.cost).toEqual(1000);
+        expect(respBody.name).toEqual('food');
+        expect(respBody.description).toEqual('some tasty food');
     });
 
-    test('READ purchases works', async () => {
+    test('READ categories works', async () => {
         const firstBody = {
-            name: 'first new purchase',
-            cost: 100,
+            name: 'first',
+            limit: 100,
         };
-        const firstPurchase = await request(server)
-            .post('/purchases')
+        const firstCategory = await request(server)
+            .post('/categories')
             .set('Accept', 'application\/json/')
             .send(firstBody);
 
-        expect(firstPurchase.status).toEqual(200);
+        expect(firstCategory.status).toEqual(200);
 
         const secondBody = {
-            name: 'second new purchase',
-            cost: 200,
+            name: 'second',
+            limit: 200,
         };
-        const secondPurchase = await request(server)
-            .post('/purchases')
+        const secondCategory = await request(server)
+            .post('/categories')
             .set('Accept', 'application\/json/')
             .send(secondBody);
 
-        expect(secondPurchase.status).toEqual(200);
+        expect(secondCategory.status).toEqual(200);
 
         const thirdBody = {
-            name: 'third new purchase',
-            cost: 300,
+            name: 'third',
+            limit: 300,
         };
-        const thirdPurchase = await request(server)
-            .post('/purchases')
+        const thirdCategory = await request(server)
+            .post('/categories')
             .set('Accept', 'application\/json/')
             .send(thirdBody);
 
-        expect(thirdPurchase.status).toEqual(200);
+        expect(thirdCategory.status).toEqual(200);
 
-        const response = await request(server).get('/purchases');
-        const purchasesArray = response.body;
+        const response = await request(server).get('/categories');
+        const categoriesArray = response.body;
 
         expect(response.status).toEqual(200);
         expect(response.type).toEqual('application/json');
-        expect(purchasesArray.length).toBe(3);
+        expect(categoriesArray.length).toBe(3);
 
-        const [first, second, third] = purchasesArray;
-        expect(first.name).toEqual('first new purchase');
-        expect(first.cost).toEqual(100);
-        expect(second.name).toEqual('second new purchase');
-        expect(second.cost).toEqual(200);
-        expect(third.name).toEqual('third new purchase');
-        expect(third.cost).toEqual(300);
+        const [first, second, third] = categoriesArray;
+        expect(first.name).toEqual('first');
+        expect(first.limit).toEqual(100);
+        expect(second.name).toEqual('second');
+        expect(second.limit).toEqual(200);
+        expect(third.name).toEqual('third');
+        expect(third.limit).toEqual(300);
     });
 
-    test('UPDATE purchase works', async () => {
+    test('UPDATE category works', async () => {
         const body = {
-            name: 'this purchase exists',
-            cost: 1000,
+            name: 'party',
+            description: 'for me and my friends'
         };
         const createResponse = await request(server)
-            .post('/purchases')
+            .post('/categories')
             .set('Accept', 'application\/json/')
             .send(body);
 
         expect(createResponse.status).toEqual(200);
-        expect(createResponse.body.name).toEqual('this purchase exists');
-        expect(createResponse.body.cost).toEqual(1000);
+        expect(createResponse.body.name).toEqual('party');
+        expect(createResponse.body.description).toEqual('for me and my friends');
 
         const { id } = createResponse.body;
 
         const newBody = {
-            name: 'this purchase has been changed',
-            cost: 2000,
+            name: 'party',
+            description: 'for me and my friends and Joe',
+            limit: 2000,
         };
 
         const updateResponse = await request(server)
-            .patch(`/purchases/${id}`)
+            .patch(`/categories/${id}`)
             .set('Accept', 'application\/json/')
             .send(newBody);
 
         expect(updateResponse.status).toEqual(200);
         expect(updateResponse.body.id).toEqual(id);
-        expect(updateResponse.body.name).toEqual('this purchase has been changed');
-        expect(updateResponse.body.cost).toEqual(2000);
+        expect(updateResponse.body.name).toEqual('party');
+        expect(updateResponse.body.description).toEqual('for me and my friends and Joe');
+        expect(updateResponse.body.limit).toEqual(2000);
     });
 
-    test('DELETE purchase works', async () => {
+    test('DELETE category works', async () => {
         const body = {
-            name: 'this purchase exists',
-            cost: 100,
+            name: 'foobaz',
+            limit: 100,
         };
         const createResponse = await request(server)
-            .post('/purchases')
+            .post('/categories')
             .set('Accept', 'application\/json/')
             .send(body);
 
         expect(createResponse.status).toEqual(200);
-        expect(createResponse.body.name).toEqual('this purchase exists');
+        expect(createResponse.body.name).toEqual('foobaz');
+        expect(createResponse.body.limit).toEqual(100);
 
         const { id } = createResponse.body;
 
-        const deleteResponse = await request(server).del(`/purchases/${id}`);
+        const deleteResponse = await request(server).del(`/categories/${id}`);
 
         expect(deleteResponse.status).toEqual(200);
     });

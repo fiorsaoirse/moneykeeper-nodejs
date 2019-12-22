@@ -4,5 +4,6 @@ the tables we want to include when we connect to Postgres.
 */
 
 import { Purchase } from '../models/classes/purchase';
+import { Category } from '../models/classes/category';
 
-export const postgresTables = [ Purchase ];
+export const postgresTables = [ Purchase, Category ];

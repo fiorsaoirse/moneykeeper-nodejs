@@ -5,7 +5,7 @@
   "main": "dist/start.ts",
   "scripts": {
     "build": "tsc",
-    "test": "jest",
+    "test": "jest --runInBand",
     "watch": "nodemon --watch 'dist/**/*' -e ts,tsx --exec ts-node ./dist/bin/start.js",
     "lint": "tslint --project '.' --fix"
   },

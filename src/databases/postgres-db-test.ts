@@ -14,7 +14,7 @@ export const postgresDB = async () => {
         password: 'moneykeeper',
         database: 'moneykeeper_test',
         schema: 'moneykeeper',
-        ssl: true,
+        ssl: false,
         logging: ['query', 'error'],
         synchronize: true,
         entities: postgresTables,
