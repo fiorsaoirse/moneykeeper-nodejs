@@ -1,9 +1,9 @@
 import { DeleteResult, getManager, Repository } from 'typeorm';
 import { Purchase } from '../models/classes/purchase';
-import { IReqPurchase } from '../request-interfaces/purchase/create-purchase';
+import { IReqPurchase } from '../interfaces/purchase/create-purchase';
 import { validate, ValidationError } from 'class-validator';
 
-export default class PurchaseController {
+export default class PurchaseDAO {
     // private purchaseRepository: Repository<Purchase> = getManager().getRepository(Purchase);
     // TODO: как вынести репозиторий в приватное свойство?
 
@@ -55,13 +55,18 @@ export default class PurchaseController {
         }
     }
 
-    public static async deletePurchase(id: number): Promise<DeleteResult> {
+    public static async deletePurchase(id: number): Promise<Purchase> {
         const purchaseRepository: Repository<Purchase> = getManager().getRepository(Purchase);
         const purchase: Purchase | undefined = await purchaseRepository.findOne(id);
         // Throw error if purchase doesn't exist in db
         if (!purchase) {
             throw new Error(`The purchase with id "${id}" doesn't exist.`);
         }
-        return await purchaseRepository.delete(id);
+        const result: DeleteResult = await purchaseRepository.delete(id);
+        // Throw error if row was not deleted
+        if (!result) {
+            throw new Error(`Something went wrong during deleting row`);
+        }
+        return purchase;
     }
 }

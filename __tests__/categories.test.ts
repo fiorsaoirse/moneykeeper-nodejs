@@ -188,6 +188,7 @@ describe('Testing of category REST requests', () => {
         const deleteResponse = await request(server).del(`/categories/${id}`);
 
         expect(deleteResponse.status).toEqual(200);
+        expect(deleteResponse.body.id).toEqual(id);
     });
 });
 

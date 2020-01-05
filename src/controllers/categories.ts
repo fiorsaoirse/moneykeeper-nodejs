@@ -1,64 +1,63 @@
-import { DeleteResult, getManager, Repository } from 'typeorm';
-import { validate, ValidationError } from 'class-validator';
-import { Category } from '../models/classes/category';
-import { IReqCategory } from '../request-interfaces/category/create-category';
+import { categoryDAO } from '../DAO/index';
+import Router = require('koa-router');
 
-export default class CategoryController {
-    public static async createCategory(body: IReqCategory): Promise<Category> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        const category = new Category();
-        category.name = body.name;
-        category.description = body.description;
-        category.limit = body.limit;
-        category.created = new Date();
-        // validation
-        const errors: ValidationError[] = await validate(category, { skipMissingProperties: true });
-        if (errors.length > 0) {
-            throw new Error(errors.toString());
-        } else {
-            return await categoryRepository.save(category);
-        }
+const router: Router = new Router({
+    prefix: '/categories'
+});
+
+router.get('/:id', async (ctx) => {
+    try {
+        const { id } = ctx.params;
+        const result = await categoryDAO.readCategory(id);
+        ctx.status = 200;
+        ctx.body = result;
+    } catch (err) {
+        throw new Error(err);
     }
+});
 
-    public static async readCategory(id: number): Promise<Category | undefined> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        return await categoryRepository.findOne(id);
+router.get('/', async (ctx) => {
+    try {
+        const result = await categoryDAO.readCategories();
+        ctx.status = 200;
+        ctx.body = result;
+    } catch (err) {
+        throw new Error(err);
     }
+});
 
-    public static async readCategorys(): Promise<Category[]> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        return await categoryRepository.find();
+router.post('/', async (ctx) => {
+    try {
+        const { body } = ctx.request;
+        const result = await categoryDAO.createCategory(body);
+        ctx.status = 200;
+        ctx.body = result;
+    } catch (err) {
+        throw new Error(err);
     }
+});
 
-    public static async updateCategory(id: number, body: IReqCategory): Promise<Category> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        const category: Category | undefined = await categoryRepository.findOne(id);
-        // Throw error if Category doesn't exist in db
-        if (!category) {
-            throw new Error(`The category with id "${id}" doesn't exist.`);
-        }
-        const updatedCategory = new Category();
-        updatedCategory.id = id;
-        updatedCategory.name = body.name;
-        updatedCategory.description = body.description;
-        updatedCategory.limit = body.limit;
-
-        // validation
-        const errors: ValidationError[] = await validate(Category, { skipMissingProperties: true });
-        if (errors.length > 0) {
-            throw new Error(errors.toString());
-        } else {
-            return await categoryRepository.save(updatedCategory);
-        }
+router.patch('/:id', async (ctx) => {
+    try {
+        const { id } = ctx.params;
+        const { body } = ctx.request;
+        const result = await categoryDAO.updateCategory(id, body);
+        ctx.status = 200;
+        ctx.body = result;
+    } catch (err) {
+        throw new Error(err);
     }
+});
 
-    public static async deleteCategory(id: number): Promise<DeleteResult> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        const category: Category | undefined = await categoryRepository.findOne(id);
-        // Throw error if Category doesn't exist in db
-        if (!category) {
-            throw new Error(`The category with id "${id}" doesn't exist.`);
-        }
-        return await categoryRepository.delete(id);
+router.delete('/:id', async (ctx) => {
+    try {
+        const { id } = ctx.params;
+        const result = await categoryDAO.deleteCategory(id);
+        ctx.status = 200;
+        ctx.body = result;
+    } catch (err) {
+        throw new Error(err);
     }
-}
+});
+
+export default router;

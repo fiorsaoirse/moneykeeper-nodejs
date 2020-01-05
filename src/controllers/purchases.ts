@@ -1,4 +1,4 @@
-import { purchase as purchaseController } from '../controllers/index';
+import { purchaseDAO } from '../DAO/index';
 import Router = require('koa-router');
 
 const router: Router = new Router({
@@ -8,7 +8,7 @@ const router: Router = new Router({
 router.get('/:id', async (ctx) => {
     try {
         const { id } = ctx.params;
-        const result = await purchaseController.readPurchase(id);
+        const result = await purchaseDAO.readPurchase(id);
         ctx.status = 200;
         ctx.body = result;
     } catch (err) {
@@ -18,7 +18,7 @@ router.get('/:id', async (ctx) => {
 
 router.get('/', async (ctx) => {
     try {
-        const result = await purchaseController.readPurchases();
+        const result = await purchaseDAO.readPurchases();
         ctx.status = 200;
         ctx.body = result;
     } catch (err) {
@@ -29,7 +29,7 @@ router.get('/', async (ctx) => {
 router.post('/', async (ctx) => {
     try {
         const { body } = ctx.request;
-        const result = await purchaseController.createPurchase(body);
+        const result = await purchaseDAO.createPurchase(body);
         ctx.status = 200;
         ctx.body = result;
     } catch (err) {
@@ -41,7 +41,7 @@ router.patch('/:id', async (ctx) => {
     try {
         const { id } = ctx.params;
         const { body } = ctx.request;
-        const result = await purchaseController.updatePurchase(id, body);
+        const result = await purchaseDAO.updatePurchase(id, body);
         ctx.status = 200;
         ctx.body = result;
     } catch (err) {
@@ -52,7 +52,8 @@ router.patch('/:id', async (ctx) => {
 router.delete('/:id', async (ctx) => {
     try {
         const { id } = ctx.params;
-        const result = await purchaseController.deletePurchase(id);
+        console.log(id);
+        const result = await purchaseDAO.deletePurchase(id);
         ctx.status = 200;
         ctx.body = result;
     } catch (err) {

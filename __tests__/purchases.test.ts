@@ -224,6 +224,7 @@ describe('Testing of purchase REST requests', () => {
         const deleteResponse = await request(server).del(`/purchases/${id}`);
 
         expect(deleteResponse.status).toEqual(200);
+        expect(deleteResponse.body.id).toEqual(id);
     });
 });
 

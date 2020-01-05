@@ -7,7 +7,7 @@
     "build": "tsc",
     "test": "jest --runInBand",
     "watch": "nodemon --watch 'dist/**/*' -e ts,tsx --exec ts-node ./dist/bin/start.js",
-    "lint": "tslint --project '.' --fix"
+    "lint": "tslint --config ./tslint.json --project ./tsconfig.json --fix"
   },
   "keywords": [],
   "author": "fiorsaoirse",
@@ -17,6 +17,7 @@
     "cookie-parser": "^1.4.4",
     "koa": "^2.11.0",
     "koa-bodyparser": "^4.2.1",
+    "koa-cors": "0.0.16",
     "koa-joi-swagger-ts": "^1.2.2",
     "koa-logger": "^3.2.1",
     "koa-router": "^7.4.0",
@@ -38,6 +39,7 @@
     "@types/jest": "^24.0.24",
     "@types/koa": "^2.11.0",
     "@types/koa-bodyparser": "^4.3.0",
+    "@types/koa-cors": "0.0.0",
     "@types/koa-logger": "^3.1.1",
     "@types/koa-router": "^7.0.42",
     "@types/node": "^12.12.21",
