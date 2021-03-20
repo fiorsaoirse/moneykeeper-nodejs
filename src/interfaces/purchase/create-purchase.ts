@@ -1,4 +1,4 @@
-import { Category } from '../../models/classes/category';
+import { Category } from '../../models/entities/category';
 
 export interface IReqPurchase {
     name: string;

@@ -1,69 +1,76 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { DeleteResult, getManager, Repository } from 'typeorm';
 import { validate, ValidationError } from 'class-validator';
-import { Category } from '../models/classes/category';
-import { IReqCategory } from '../interfaces/category/create-category';
+import { cloneDeep } from 'lodash-es';
+import { Category } from '../models/entities/category';
+import { IDAO } from './contracts/base';
+import { IMoneyKeeperLogger } from '../utils/logger/logger.contract';
 
-export default class CategoryDAO {
-    public static async createCategory(body: IReqCategory): Promise<Category> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        const category = new Category();
-        category.name = body.name;
-        category.description = body.description;
-        category.limit = body.limit;
-        category.created = new Date();
-        // validation
-        const errors: ValidationError[] = await validate(category, { skipMissingProperties: true });
+export default class CategoryDAO implements IDAO<Category> {
+    private static readonly NAME = 'CATEGORY';
+
+    private readonly repository: Repository<Category>;
+
+    private readonly logger: IMoneyKeeperLogger;
+
+    constructor(logger: IMoneyKeeperLogger) {
+        this.repository = getManager().getRepository(Category);
+        this.logger = logger;
+    }
+
+    async create(item: Category): Promise<Category> {
+        const copy = cloneDeep<Category>(item);
+        copy.created = Date.now();
+        const errors: ValidationError[] = await validate(copy, { skipMissingProperties: true });
         if (errors.length > 0) {
-            throw new Error(errors.toString());
-        } else {
-            return await categoryRepository.save(category);
+            this.logger.error(`Entity "${CategoryDAO.NAME}", errors: ${JSON.stringify(errors)}`);
+            throw new Error(
+                errors
+                    // TODO: придумать маппинг для i18n на стороне клиента
+                    .map((err: ValidationError) => `Validation error: property ${err.property} has value ${err.value}`)
+                    .join('\n')
+            );
         }
+        this.logger.info(`Created "${CategoryDAO.NAME}": ${JSON.stringify(copy)}`);
+        return this.repository.save(copy);
     }
 
-    public static async readCategory(id: number): Promise<Category | undefined> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        return await categoryRepository.findOne(id);
+    async read(id: string): Promise<Category | null> {
+        return (await this.repository.findOne(id)) ?? null;
     }
 
-    public static async readCategories(): Promise<Category[]> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        return await categoryRepository.find();
+    async readAll(): Promise<readonly Category[]> {
+        return this.repository.find();
     }
 
-    public static async updateCategory(id: number, body: IReqCategory): Promise<Category> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        const category: Category | undefined = await categoryRepository.findOne(id);
-        // Throw error if Category doesn't exist in db
+    async update(id: string, item: Category): Promise<Category> {
+        const category = await this.repository.findOne(id);
         if (!category) {
-            throw new Error(`The category with id "${id}" doesn't exist.`);
+            this.logger.error(`${CategoryDAO.NAME} with id "${id}" does not exist.`);
+            throw new Error(`entity.not.exist`);
         }
-        const updatedCategory = new Category();
-        updatedCategory.id = id;
-        updatedCategory.name = body.name;
-        updatedCategory.description = body.description;
-        updatedCategory.limit = body.limit;
-
-        // validation
-        const errors: ValidationError[] = await validate(Category, { skipMissingProperties: true });
+        const copy = cloneDeep<Category>(item);
+        copy.updated = Date.now();
+        const errors: ValidationError[] = await validate(copy, { skipMissingProperties: true });
         if (errors.length > 0) {
-            throw new Error(errors.toString());
-        } else {
-            return await categoryRepository.save(updatedCategory);
+            this.logger.error(`Entity "${CategoryDAO.NAME}", errors: ${JSON.stringify(errors)}`);
+            throw new Error(
+                errors
+                    // TODO: придумать маппинг для i18n на стороне клиента
+                    .map((err: ValidationError) => `Validation error: property ${err.property} has value ${err.value}`)
+                    .join('\n')
+            );
         }
+        this.logger.info(`Updated "${CategoryDAO.NAME}": ${JSON.stringify(copy)}`);
+        return this.repository.save(copy);
     }
 
-    public static async deleteCategory(id: number): Promise<Category> {
-        const categoryRepository: Repository<Category> = getManager().getRepository(Category);
-        const category: Category | undefined = await categoryRepository.findOne(id);
-        // Throw error if Category doesn't exist in db
+    async delete(id: string): Promise<DeleteResult> {
+        const category = await this.repository.findOne(id);
         if (!category) {
-            throw new Error(`The category with id "${id}" doesn't exist.`);
+            this.logger.error(`${CategoryDAO.NAME} with id "${id}" does not exist.`);
+            throw new Error(`entity.not.exist`);
         }
-        const result: DeleteResult = await categoryRepository.delete(id);
-        // Throw error if row was not deleted
-        if (!result) {
-            throw new Error(`Something went wrong during deleting row`);
-        }
-        return category;
+        return this.repository.delete(id);
     }
 }

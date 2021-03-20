@@ -1,13 +1,14 @@
 import { BaseEntity, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { IModel } from '../interfaces/iModel';
+import { IModel } from '../contracts/iModel';
 
 @Entity()
 export abstract class Model extends BaseEntity implements IModel {
-    // column "id", generated
     @PrimaryGeneratedColumn('uuid')
-    public id!: number;
+    public id!: string;
 
-    // column "created", type - timestamp
     @Column('timestamp')
-    public created!: Date;
+    public created!: number;
+
+    @Column('timestamp')
+    public updated?: number;
 }

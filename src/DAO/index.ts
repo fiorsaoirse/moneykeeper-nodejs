@@ -1,3 +1,2 @@
-// export all controllers through this file
-export { default as purchaseDAO } from './purchases';
-export { default as categoryDAO } from './categories';
+export { default as PurchaseDAO } from './purchases';
+export { default as CategoryDAO } from './categories';

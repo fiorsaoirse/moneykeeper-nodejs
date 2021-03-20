@@ -1,72 +1,76 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { DeleteResult, getManager, Repository } from 'typeorm';
-import { Purchase } from '../models/classes/purchase';
-import { IReqPurchase } from '../interfaces/purchase/create-purchase';
 import { validate, ValidationError } from 'class-validator';
+import { cloneDeep } from 'lodash-es';
+import { Purchase } from '../models/entities/purchase';
+import { IDAO } from './contracts/base';
+import { IMoneyKeeperLogger } from '../utils/logger/logger.contract';
 
-export default class PurchaseDAO {
-    // private purchaseRepository: Repository<Purchase> = getManager().getRepository(Purchase);
-    // TODO: как вынести репозиторий в приватное свойство?
+export default class PurchaseDAO implements IDAO<Purchase> {
+    private static readonly NAME = 'PURCHASE';
 
-    public static async createPurchase(body: IReqPurchase): Promise<Purchase> {
-        const purchaseRepository: Repository<Purchase> = getManager().getRepository(Purchase);
-        const purchase = new Purchase();
-        purchase.name = body.name;
-        purchase.cost = body.cost;
-        purchase.category = body.category;
-        purchase.created = new Date();
-        // validation
-        const errors: ValidationError[] = await validate(purchase, { skipMissingProperties: true });
+    private readonly repository: Repository<Purchase>;
+
+    private readonly logger: IMoneyKeeperLogger;
+
+    constructor(logger: IMoneyKeeperLogger) {
+        this.repository = getManager().getRepository(Purchase);
+        this.logger = logger;
+    }
+
+    async create(item: Purchase): Promise<Purchase> {
+        const copy = cloneDeep<Purchase>(item);
+        copy.created = Date.now();
+        const errors: ValidationError[] = await validate(copy, { skipMissingProperties: true });
         if (errors.length > 0) {
-            throw new Error(errors.toString());
-        } else {
-            return await purchaseRepository.save(purchase);
+            this.logger.error(`Entity "${PurchaseDAO.NAME}", errors: ${JSON.stringify(errors)}`);
+            throw new Error(
+                errors
+                    // TODO: придумать маппинг для i18n на стороне клиента
+                    .map((err: ValidationError) => `Validation error: property ${err.property} has value ${err.value}`)
+                    .join('\n')
+            );
         }
+        this.logger.info(`Created "${PurchaseDAO.NAME}": ${JSON.stringify(item)}`);
+        return this.repository.save(copy);
     }
 
-    public static async readPurchase(id: number): Promise<Purchase | undefined> {
-        const purchaseRepository: Repository<Purchase> = getManager().getRepository(Purchase);
-        return await purchaseRepository.findOne(id);
+    async read(id: string): Promise<Purchase | null> {
+        return (await this.repository.findOne(id)) ?? null;
     }
 
-    public static async readPurchases(): Promise<Purchase[]> {
-        const purchaseRepository: Repository<Purchase> = getManager().getRepository(Purchase);
-        return await purchaseRepository.find();
+    async readAll(): Promise<readonly Purchase[]> {
+        return this.repository.find();
     }
 
-    public static async updatePurchase(id: number, body: IReqPurchase): Promise<Purchase> {
-        const purchaseRepository: Repository<Purchase> = getManager().getRepository(Purchase);
-        const purchase: Purchase | undefined = await purchaseRepository.findOne(id);
-        // Throw error if purchase doesn't exist in db
+    async update(id: string, item: Purchase): Promise<Purchase> {
+        const purchase = await this.repository.findOne(id);
         if (!purchase) {
-            throw new Error(`The purchase with id "${id}" doesn't exist.`);
+            this.logger.error(`${PurchaseDAO.NAME} with id "${id}" does not exist.`);
+            throw new Error(`entity.not.exist`);
         }
-        const updatedPurchase = new Purchase();
-        updatedPurchase.id = id;
-        updatedPurchase.name = body.name;
-        updatedPurchase.cost = body.cost;
-        updatedPurchase.category = body.category;
-
-        // validation
-        const errors: ValidationError[] = await validate(purchase, { skipMissingProperties: true });
+        const copy = cloneDeep<Purchase>(item);
+        copy.updated = Date.now();
+        const errors: ValidationError[] = await validate(item, { skipMissingProperties: true });
         if (errors.length > 0) {
-            throw new Error(errors.toString());
-        } else {
-            return await purchaseRepository.save(updatedPurchase);
+            this.logger.error(`Entity "${PurchaseDAO.NAME}", errors: ${JSON.stringify(errors)}`);
+            throw new Error(
+                errors
+                    // TODO: придумать маппинг для i18n на стороне клиента
+                    .map((err: ValidationError) => `Validation error: property ${err.property} has value ${err.value}`)
+                    .join('\n')
+            );
         }
+        this.logger.info(`Updated "${PurchaseDAO.NAME}": ${JSON.stringify(copy)}`);
+        return this.repository.save(copy);
     }
 
-    public static async deletePurchase(id: number): Promise<Purchase> {
-        const purchaseRepository: Repository<Purchase> = getManager().getRepository(Purchase);
-        const purchase: Purchase | undefined = await purchaseRepository.findOne(id);
-        // Throw error if purchase doesn't exist in db
+    async delete(id: string): Promise<DeleteResult> {
+        const purchase = await this.repository.findOne(id);
         if (!purchase) {
-            throw new Error(`The purchase with id "${id}" doesn't exist.`);
+            this.logger.error(`${PurchaseDAO.NAME} with id "${id}" does not exist.`);
+            throw new Error(`entity.not.exist`);
         }
-        const result: DeleteResult = await purchaseRepository.delete(id);
-        // Throw error if row was not deleted
-        if (!result) {
-            throw new Error(`Something went wrong during deleting row`);
-        }
-        return purchase;
+        return this.repository.delete(id);
     }
 }

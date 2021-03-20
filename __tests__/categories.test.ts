@@ -11,7 +11,7 @@ describe('Testing of category REST requests', () => {
     let server;
 
     beforeAll(async () => {
-        console.log(`Initialize the database`);
+        console.log('Initialize the database');
         await postgresDB();
         server = app.listen(port, () => {
             console.log(`Test server running on port ${port}`);
@@ -19,7 +19,6 @@ describe('Testing of category REST requests', () => {
     });
 
     afterEach(async () => {
-        // Clear table after each test run
         const repository = getManager().getRepository(Category);
         await repository.delete({});
     });

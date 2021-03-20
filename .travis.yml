@@ -5,4 +5,5 @@ before_script:
   - npm i
 script:
   - make lint
+  - make test
   - make build
