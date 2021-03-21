@@ -1,25 +1,28 @@
 import request from 'supertest';
-import app from '../dist/app';
+import Koa from 'koa';
+import initializeApp from '../dist/app';
 import config from '../dist/environment/config-test';
-import { postgresDB } from '../dist/databases/postgres-db-test';
-import { getManager } from 'typeorm';
-import { Category } from '../dist/models/classes/category';
+import { getRepository } from 'typeorm';
+import { Server } from 'node:http';
+import { Category } from '../dist/models/entities/category';
 
 const port = config.port || 4000;
 
 describe('Testing of category REST requests', () => {
-    let server;
+    let app: Koa;
+    let server: Server;
 
     beforeAll(async () => {
-        console.log('Initialize the database');
-        await postgresDB();
-        server = app.listen(port, () => {
-            console.log(`Test server running on port ${port}`);
-        });
+        try {
+            app = await initializeApp(config);
+            server = app.listen(port, () => console.log(`Server running on port ${port}`))
+        } catch (error) {
+            console.error(error);
+        }
     });
 
     afterEach(async () => {
-        const repository = getManager().getRepository(Category);
+        const repository = getRepository(Category);
         await repository.delete({});
     });
 
@@ -190,4 +193,3 @@ describe('Testing of category REST requests', () => {
         expect(deleteResponse.body.id).toEqual(id);
     });
 });
-

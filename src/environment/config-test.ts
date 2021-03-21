@@ -1,7 +1,7 @@
-import { IConfig } from './config';
+import { IConfig } from 'models/contracts/iConfig';
 
 export default <IConfig>{
-    port: 5432,
+    port: 5433,
     host: 'localhost',
     username: 'moneykeeper-test',
     password: 'moneykeepertestsecret',

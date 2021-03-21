@@ -1,14 +1,7 @@
-export interface IConfig {
-    port: number;
-    host: string;
-    username: string;
-    password: string;
-    database: string;
-    schema: string;
-}
+import { IConfig } from 'models/contracts/iConfig';
 
 export default <IConfig>{
-    port: 5432,
+    port: 5433,
     host: 'localhost',
     username: 'moneykeeper',
     password: 'moneykeepersecret',

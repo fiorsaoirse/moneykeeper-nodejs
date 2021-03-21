@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/restrict-template-expressions */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable no-console */
-import { createConnection } from 'typeorm';
+import { IConfig } from 'models/contracts/iConfig';
+import { createConnection, Connection } from 'typeorm';
 import postgresTables from './postrgestables';
-import config from '../environment/config';
 
-export const postgresDB = async (): Promise<void> => {
+export default async (config: IConfig): Promise<Connection> => {
     try {
         console.log('Start initializing DB');
-        await createConnection({
+        const connection = await createConnection({
+            name: 'default',
             type: 'postgres',
             host: config.host,
             port: config.port,
@@ -22,7 +23,8 @@ export const postgresDB = async (): Promise<void> => {
             entities: postgresTables,
         });
         console.log('Database connection is connected');
+        return connection;
     } catch (error) {
-        console.error(`Error during initialiaztion database connection: ${error.message}`);
+        return Promise.reject(new Error(`Error during initialiaztion database connection: ${error.message}`));
     }
 };
